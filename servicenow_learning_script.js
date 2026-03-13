@@ -1,90 +1,76 @@
 #!/usr/bin/env node
 /**
- * ServiceNow Documentation Learning Script
- * Runs twice a week to scrape and learn new content
+ * ServiceNow Knowledge Learning Script
+ * Uses Tavily Search to gather ServiceNow documentation updates
+ * Runs twice a week
  */
 
-const { chromium } = require('playwright');
+const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
 const CONFIG = {
-    baseUrl: 'https://www.servicenow.com/docs/',
     outputDir: '/root/.openclaw/workspace/solution/servicenow_knowledge',
     topics: [
-        'event-management',
-        'ai-search',
-        'itsm',
-        'itom',
-        'hr-service-delivery',
-        'security-operations',
-        'app-engine',
-        'integration-hub'
+        { name: 'event-management', query: 'ServiceNow Yokohama Event Management new features 2026' },
+        { name: 'ai-search', query: 'ServiceNow AI Search configuration best practices 2026' },
+        { name: 'itsm', query: 'ServiceNow ITSM latest updates features 2026' },
+        { name: 'itom', query: 'ServiceNow ITOM monitoring AIOps updates 2026' },
+        { name: 'hr-service-delivery', query: 'ServiceNow HR Service Delivery employee center 2026' },
+        { name: 'security-operations', query: 'ServiceNow SecOps security operations updates 2026' },
+        { name: 'app-engine', query: 'ServiceNow App Engine low code development 2026' },
+        { name: 'integration-hub', query: 'ServiceNow Integration Hub connectors API 2026' },
+        { name: 'agentic-ai', query: 'ServiceNow Agentic AI autonomous agents 2026' },
+        { name: 'now-assist', query: 'ServiceNow Now Assist generative AI features 2026' }
     ]
 };
 
-async function scrapeTopic(page, topic) {
-    const url = `${CONFIG.baseUrl}r/yokohama/it-operations-management/${topic}/`;
-    console.log(`Scraping: ${url}`);
-    
+function searchWithTavily(query) {
     try {
-        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-        await page.waitForTimeout(5000);
-        
-        const content = await page.evaluate(() => {
-            const title = document.querySelector('h1')?.textContent?.trim() || '';
-            const headings = Array.from(document.querySelectorAll('h2, h3'))
-                .map(h => h.textContent.trim())
-                .filter(t => t.length > 0);
-            const paragraphs = Array.from(document.querySelectorAll('p'))
-                .map(p => p.textContent.trim())
-                .filter(t => t.length > 100);
-            
-            return { title, headings, paragraphs: paragraphs.slice(0, 20) };
-        });
-        
-        return { topic, url, success: true, content };
+        const result = execSync(
+            `python3 /root/.openclaw/workspace/skills/openclaw-tavily-search/scripts/tavily_search.py --query "${query}" --max-results 5 --format md`,
+            { encoding: 'utf-8', timeout: 60000 }
+        );
+        return { success: true, content: result };
     } catch (error) {
-        return { topic, url, success: false, error: error.message };
+        return { success: false, error: error.message };
     }
 }
 
 async function main() {
-    console.log(`[${new Date().toISOString()}] Starting ServiceNow Learning...`);
+    console.log(`[${new Date().toISOString()}] Starting ServiceNow Knowledge Learning...`);
     
     // Ensure output directory exists
     if (!fs.existsSync(CONFIG.outputDir)) {
         fs.mkdirSync(CONFIG.outputDir, { recursive: true });
     }
     
-    const browser = await chromium.launch({ headless: true });
-    const context = await browser.newContext({
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-    });
-    const page = await context.newPage();
-    
     const results = [];
     
     for (const topic of CONFIG.topics) {
-        const result = await scrapeTopic(page, topic);
-        results.push(result);
+        console.log(`Searching: ${topic.name}`);
+        
+        const result = searchWithTavily(topic.query);
+        results.push({
+            topic: topic.name,
+            query: topic.query,
+            ...result
+        });
         
         if (result.success) {
-            const filename = `${topic}_${Date.now()}.json`;
+            const filename = `${topic.name}_${Date.now()}.md`;
             fs.writeFileSync(
                 path.join(CONFIG.outputDir, filename),
-                JSON.stringify(result, null, 2)
+                result.content
             );
             console.log(`  ✓ Saved: ${filename}`);
         } else {
             console.log(`  ✗ Failed: ${result.error}`);
         }
         
-        // Wait between requests
+        // Wait between requests to avoid rate limiting
         await new Promise(r => setTimeout(r, 3000));
     }
-    
-    await browser.close();
     
     // Generate summary report
     const report = {
@@ -95,13 +81,26 @@ async function main() {
         results
     };
     
+    const reportFile = `report_${Date.now()}.json`;
     fs.writeFileSync(
-        path.join(CONFIG.outputDir, `report_${Date.now()}.json`),
+        path.join(CONFIG.outputDir, reportFile),
         JSON.stringify(report, null, 2)
+    );
+    
+    // Create consolidated knowledge file
+    const consolidatedKnowledge = results
+        .filter(r => r.success)
+        .map(r => `## ${r.topic.toUpperCase()}\n\nQuery: ${r.query}\n\n${r.content}`)
+        .join('\n\n---\n\n');
+    
+    fs.writeFileSync(
+        path.join(CONFIG.outputDir, `consolidated_knowledge_${Date.now()}.md`),
+        `# ServiceNow Knowledge Update - ${new Date().toISOString().split('T')[0]}\n\n${consolidatedKnowledge}`
     );
     
     console.log(`[${new Date().toISOString()}] Learning complete!`);
     console.log(`  Success: ${report.successful}/${report.totalTopics}`);
+    console.log(`  Report: ${reportFile}`);
 }
 
 main().catch(console.error);

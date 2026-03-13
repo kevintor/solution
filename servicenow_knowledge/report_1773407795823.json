@@ -1,0 +1,57 @@
+{
+  "timestamp": "2026-03-13T13:16:35.823Z",
+  "totalTopics": 8,
+  "successful": 0,
+  "withContent": 0,
+  "failed": 8,
+  "results": [
+    {
+      "topic": "event-management",
+      "url": "https://www.servicenow.com/docs/r/yokohama/it-operations-management/event-management/c_EM.html",
+      "success": false,
+      "error": "page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"https://www.servicenow.com/docs/r/yokohama/it-operations-management/event-management/c_EM.html\", waiting until \"networkidle\"\n"
+    },
+    {
+      "topic": "ai-search",
+      "url": "https://www.servicenow.com/docs/r/yokohama/release-notes/new-features-changes.html",
+      "success": false,
+      "error": "page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"https://www.servicenow.com/docs/r/yokohama/release-notes/new-features-changes.html\", waiting until \"networkidle\"\n"
+    },
+    {
+      "topic": "itsm",
+      "url": "https://www.servicenow.com/docs/r/itsm/index.html",
+      "success": false,
+      "error": "page.goto: Target page, context or browser has been closed\nCall log:\n  - navigating to \"https://www.servicenow.com/docs/r/itsm/index.html\", waiting until \"networkidle\"\n"
+    },
+    {
+      "topic": "itom",
+      "url": "https://www.servicenow.com/docs/r/itom/index.html",
+      "success": false,
+      "error": "page.goto: Target page, context or browser has been closed"
+    },
+    {
+      "topic": "hr-service-delivery",
+      "url": "https://www.servicenow.com/docs/r/hr-service-delivery/index.html",
+      "success": false,
+      "error": "page.goto: Target page, context or browser has been closed"
+    },
+    {
+      "topic": "security-operations",
+      "url": "https://www.servicenow.com/docs/r/security-operations/index.html",
+      "success": false,
+      "error": "page.goto: Target page, context or browser has been closed"
+    },
+    {
+      "topic": "app-engine",
+      "url": "https://www.servicenow.com/docs/r/app-engine/index.html",
+      "success": false,
+      "error": "page.goto: Target page, context or browser has been closed"
+    },
+    {
+      "topic": "integration-hub",
+      "url": "https://www.servicenow.com/docs/r/integration-hub/index.html",
+      "success": false,
+      "error": "page.goto: Target page, context or browser has been closed"
+    }
+  ]
+}
